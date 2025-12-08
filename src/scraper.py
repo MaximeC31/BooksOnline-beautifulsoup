@@ -1,8 +1,7 @@
 import requests
-from typing import Optional
 
 
-def fetch_html(url: str) -> Optional[str]:
+def fetch_html(url: str) -> str | None:
     try:
         response: requests.Response = requests.get(url, timeout=10)
         response.raise_for_status()
