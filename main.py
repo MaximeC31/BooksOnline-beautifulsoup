@@ -1,22 +1,36 @@
-from src.scraper import fetch_html
-from src.parser import parse_product
-from src.csv_writer import write_products_to_csv
-from src.constants import DEFAULT_CSV_FILE
+from src.client.http_client import fetch_html
+from src.core.parser import parse_product
+from src.services.category import get_product_urls_from_category_page
+from src.core.csv_writer import write_products_to_csv
+from src.constants.constants import DEFAULT_CSV_FILE, ProductData
 
 
 def main():
-    product_url: str = (
-        "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
+    category_url = (
+        "https://books.toscrape.com/catalogue/category/books/travel_2/index.html"
     )
+    print(f"Scraping category: {category_url}")
 
-    html_content: str | None = fetch_html(product_url)
+    product_urls = get_product_urls_from_category_page(category_url)
+    print(f"Found {len(product_urls)} products. Starting extraction...")
 
-    if html_content:
-        product = parse_product(html_content, product_url)
-        print(product)
-        write_products_to_csv([product], DEFAULT_CSV_FILE)
-    else:
-        print("Scrape failed!")
+    products: list[ProductData] = []
+
+    for url in product_urls:
+        html = fetch_html(url)
+        if not html:
+            continue
+
+        print(f"Processing: {url}")
+        data = parse_product(html, url)
+        products.append(data)
+
+    if not products:
+        print("No products extracted.")
+        return
+
+    write_products_to_csv(products, DEFAULT_CSV_FILE)
+    print(f"Successfully wrote {len(products)} products to {DEFAULT_CSV_FILE}")
 
 
 main()

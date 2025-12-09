@@ -1,5 +1,7 @@
 from typing import Dict, List
 
+ProductData = Dict[str, str | int | float | None]
+
 PRODUCT_FIELDS: Dict[str, str] = {
     "URL": "product_page_url",
     "UPC": "universal_product_code",

@@ -1,9 +1,7 @@
 import csv
 from pathlib import Path
-from typing import List, Dict
-from src.constants import CSV_HEADERS
-
-ProductData = Dict[str, str | int | float | None]
+from typing import List
+from src.constants.constants import CSV_HEADERS, ProductData
 
 
 def write_products_to_csv(products: List[ProductData], filename: str) -> None:

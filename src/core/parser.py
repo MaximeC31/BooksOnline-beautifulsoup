@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from src.constants import PRODUCT_FIELDS
+from src.constants.constants import PRODUCT_FIELDS, ProductData
 
 
 # --- MICRO-FUNCTIONS ---
@@ -48,28 +48,6 @@ def get_price_excluding_tax(soup: BeautifulSoup) -> float | None:
         return None
 
 
-def get_category(soup: BeautifulSoup) -> str | None:
-    category = soup.select_one(".breadcrumb li:nth-child(3)")
-    return category.text.strip() if category else None
-
-
-def get_description(soup: BeautifulSoup) -> str | None:
-    description = soup.select_one("#product_description + p")
-    return description.text if description else None
-
-
-def get_image_url(soup: BeautifulSoup, product_url: str) -> str | None:
-    image = soup.select_one(".item.active > img")
-    if not image:
-        return None
-
-    relative_image_url = str(image.get("src", ""))
-    if not relative_image_url:
-        return None
-
-    return urljoin(product_url, relative_image_url)
-
-
 def get_availability(soup: BeautifulSoup) -> int | None:
     stock = soup.select_one("p.instock.availability")
     if not stock:
@@ -77,6 +55,19 @@ def get_availability(soup: BeautifulSoup) -> int | None:
 
     stock_digits = "".join(c for c in stock.text if c.isdigit())
     return int(stock_digits) if stock_digits else None
+
+
+def get_description(soup: BeautifulSoup) -> str | None:
+    description = soup.select_one("#product_description + p")
+    if not description:
+        return None
+
+    return description.text.strip().replace(";", " - ")
+
+
+def get_category(soup: BeautifulSoup) -> str | None:
+    category = soup.select_one(".breadcrumb li:nth-child(3)")
+    return category.text.strip() if category else None
 
 
 def get_rating(soup: BeautifulSoup) -> int | None:
@@ -104,12 +95,30 @@ def get_rating(soup: BeautifulSoup) -> int | None:
             return None
 
 
+def get_image_url(soup: BeautifulSoup, product_url: str) -> str | None:
+    image = soup.select_one(".item.active > img")
+    if not image:
+        return None
+
+    relative_image_url = str(image.get("src", ""))
+    if not relative_image_url:
+        return None
+
+    return urljoin(product_url, relative_image_url)
+
+
+def get_product_urls(soup: BeautifulSoup, category_url: str) -> list[str]:
+    return [
+        urljoin(category_url, str(link.get("href", "")))
+        for link in soup.select(".product_pod h3 a")
+        if link.get("href")
+    ]
+
+
 # --- ORCHESTRATION ---
 
 
-def parse_product(
-    html_content: str, product_url: str
-) -> dict[str, str | int | float | None]:
+def parse_product(html_content: str, product_url: str) -> ProductData:
     soup: BeautifulSoup = BeautifulSoup(html_content, "html.parser")
 
     return {
