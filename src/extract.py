@@ -7,33 +7,33 @@ def get_product_page_url(soup: BeautifulSoup, page_url: str) -> str:
 
 
 def get_universal_product_code(soup: BeautifulSoup) -> str:
-    td_el = soup.select_one("table.table.table-striped tr:nth-child(1) > td")
-    return td_el.get_text() if td_el else "N/A"
+    td = soup.select_one("table.table.table-striped tr:nth-child(1) > td")
+    return td.get_text() if td else "N/A"
 
 
 def get_title(soup: BeautifulSoup) -> str:
-    h1_el = soup.select_one("h1")
-    return h1_el.get_text() if h1_el else "N/A"
+    h1 = soup.select_one("h1")
+    return h1.get_text() if h1 else "N/A"
 
 
 def get_price_including_tax(soup: BeautifulSoup) -> str:
-    td_el = soup.select_one("table.table.table-striped tr:nth-child(4) > td")
-    return td_el.get_text() if td_el else "N/A"
+    td = soup.select_one("table.table.table-striped tr:nth-child(4) > td")
+    return td.get_text() if td else "N/A"
 
 
 def get_price_excluding_tax(soup: BeautifulSoup) -> str:
-    td_el = soup.select_one("table.table.table-striped tr:nth-child(3) > td")
-    return td_el.get_text() if td_el else "N/A"
+    td = soup.select_one("table.table.table-striped tr:nth-child(3) > td")
+    return td.get_text() if td else "N/A"
 
 
 def get_number_available(soup: BeautifulSoup) -> str:
-    avail_el = soup.select_one("p.instock.availability")
-    return avail_el.get_text() if avail_el else "N/A"
+    avail = soup.select_one("p.instock.availability")
+    return avail.get_text() if avail else "N/A"
 
 
 def get_product_description(soup: BeautifulSoup) -> str:
-    desc_el = soup.select_one("#product_description + p")
-    return desc_el.get_text() if desc_el else "N/A"
+    desc = soup.select_one("#product_description + p")
+    return desc.get_text() if desc else "N/A"
 
 
 def get_category(soup: BeautifulSoup) -> str:
@@ -42,16 +42,15 @@ def get_category(soup: BeautifulSoup) -> str:
 
 
 def get_review_rating(soup: BeautifulSoup) -> str:
-    rating_element = soup.select_one("p.star-rating")
-    classes = rating_element.get("class") if rating_element else "N/A"
+    rating = soup.select_one("p.star-rating")
+    classes = rating.get("class") if rating else "N/A"
     return classes[1] if isinstance(classes, list) and len(classes) == 2 else "N/A"
 
 
 def get_image_url(soup: BeautifulSoup, page_url: str) -> str:
+    img = soup.select_one(".item.active img")
     ##Appliquer un transform ici
-    img_el = soup.select_one(".item.active img")
-    src = img_el.get("src") if img_el else None
-    return urljoin(page_url, str(src)) if src else "N/A"
+    return urljoin(page_url, str(img.get("src"))) if img else "N/A"
 
 
 def get_product_raw(html: str, page_url: str) -> dict[str, str]:
@@ -74,60 +73,17 @@ def get_product_raw(html: str, page_url: str) -> dict[str, str]:
 def get_product_urls(html: str, page_url: str) -> list[str]:
     soup = BeautifulSoup(html, "html.parser")
 
-    products_url = soup.select("h3 > a")
-
+    product_urls = soup.select("h3 > a")
     ##Appliquer un transform ici
     return [
         urljoin(page_url, str(product.get("href")))
-        for product in products_url
-        if product.get("href")
+        for product in product_urls
+        if product_urls
     ]
 
 
-def get_next_page_url(soup: BeautifulSoup, current_url: str) -> str | None:
-    """
-    Récupérer l'URL de la page suivante (bouton Next).
+def get_next_page_url(html: str, category_url: str) -> str | None:
+    soup = BeautifulSoup(html, "html.parser")
 
-    Args:
-        soup: BeautifulSoup object de la page actuelle
-        current_url: URL de la page actuelle (pour construire URL absolue)
-
-    Returns:
-        URL absolue de la page suivante, ou None si pas de bouton Next
-
-    Logique:
-        - Sélectionner le bouton/lien "next" (CSS selector)
-        - Si n'existe pas → retourner None
-        - Extraire href
-        - Convertir en URL absolue avec urljoin()
-        - Retourner l'URL
-    """
-    # TODO: implémenter la détection du bouton Next
-    return None
-
-
-def scrape_category(url: str, max_pages: int = 3, _current_page: int = 1) -> list[str]:
-    """
-    Scraper récursivement une catégorie avec pagination.
-
-    Args:
-        url: URL de la page catégorie à scraper
-        max_pages: Nombre maximum de pages à scraper (protection)
-        _current_page: Compteur interne (ne pas modifier, utilisé en récursion)
-
-    Returns:
-        Liste de toutes les URLs de produits trouvées dans la catégorie
-
-    Logique:
-        - Vérifier si _current_page > max_pages → retourner []
-        - Fetch la page avec fetch_page(url)
-        - Si fetch échoue → retourner []
-        - Parser avec BeautifulSoup
-        - Extraire les URLs produits de cette page avec get_product_urls()
-        - Chercher l'URL de la page suivante avec get_next_page_url()
-        - Si next_url existe → appel récursif scrape_category(next_url, max_pages, _current_page + 1)
-        - Combiner les résultats (current_products + next_products)
-        - Retourner la liste complète
-    """
-    # TODO: implémenter la logique récursive
-    return []
+    next_link = soup.select_one(".next a")
+    return urljoin(category_url, str(next_link.get("href"))) if next_link else None
