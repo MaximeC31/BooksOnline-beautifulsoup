@@ -1,15 +1,11 @@
 import requests
-from typing import Optional
 
 
-def fetch_page(url: str, timeout: int = 10) -> str:
-    """
-    Requête GET simple avec timeout (10s par défaut).
-    Retourne le HTML brut (str).
-
-    Implémentation attendue par l'utilisateur :
-    - utiliser requests.get(url, timeout=timeout)
-    - gérer les erreurs réseau (raise ou return "") de manière cohérente
-    """
-    # TODO: implémenter la logique de requête HTTP
-    raise NotImplementedError
+def fetch_page(url: str) -> str | None:
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.text
+    except requests.RequestException as e:
+        print(f"Error fetching page {url}: {e}")
+        return None

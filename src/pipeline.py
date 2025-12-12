@@ -1,4 +1,3 @@
-from typing import Dict, Any
 from .http_client import fetch_page
 from .extract import extract_product_data
 from .transform import transform_product_data
@@ -19,4 +18,10 @@ def run_product_pipeline() -> None:
     """
     # TODO: implémenter l'orchestration
 
-    print("Pipeline non encore implémentée.")
+    page_data = fetch_page(TEST_URL)
+
+    if page_data is None:
+        print("Failed to fetch page data.")
+        return
+
+    print(f"Fetched {len(page_data)} chars")
