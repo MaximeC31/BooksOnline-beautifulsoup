@@ -7,5 +7,5 @@ def fetch_page(url: str) -> str | None:
         response.raise_for_status()
         return response.text
     except requests.RequestException as e:
-        print(f"Error fetching page {url}: {e}")
+        print(f"Error fetching page: {url} {e}")
         return None

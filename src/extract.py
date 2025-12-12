@@ -1,4 +1,3 @@
-from typing import Dict
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
@@ -49,13 +48,13 @@ def get_review_rating(soup: BeautifulSoup) -> str:
 
 
 def get_image_url(soup: BeautifulSoup, page_url: str) -> str:
+    ##Appliquer un transform ici
     img_el = soup.select_one(".item.active img")
     src = img_el.get("src") if img_el else None
     return urljoin(page_url, str(src)) if src else "N/A"
 
 
-def get_product_data(html: str, page_url: str) -> Dict[str, str]:
-    print("[EXTRACT] Récupération produit...")
+def get_product_raw(html: str, page_url: str) -> dict[str, str]:
     soup = BeautifulSoup(html, "html.parser")
 
     return {
@@ -70,3 +69,65 @@ def get_product_data(html: str, page_url: str) -> Dict[str, str]:
         "review_rating": get_review_rating(soup),
         "image_url": get_image_url(soup, page_url),
     }
+
+
+def get_product_urls(html: str, page_url: str) -> list[str]:
+    soup = BeautifulSoup(html, "html.parser")
+
+    products_url = soup.select("h3 > a")
+
+    ##Appliquer un transform ici
+    return [
+        urljoin(page_url, str(product.get("href")))
+        for product in products_url
+        if product.get("href")
+    ]
+
+
+def get_next_page_url(soup: BeautifulSoup, current_url: str) -> str | None:
+    """
+    Récupérer l'URL de la page suivante (bouton Next).
+
+    Args:
+        soup: BeautifulSoup object de la page actuelle
+        current_url: URL de la page actuelle (pour construire URL absolue)
+
+    Returns:
+        URL absolue de la page suivante, ou None si pas de bouton Next
+
+    Logique:
+        - Sélectionner le bouton/lien "next" (CSS selector)
+        - Si n'existe pas → retourner None
+        - Extraire href
+        - Convertir en URL absolue avec urljoin()
+        - Retourner l'URL
+    """
+    # TODO: implémenter la détection du bouton Next
+    return None
+
+
+def scrape_category(url: str, max_pages: int = 3, _current_page: int = 1) -> list[str]:
+    """
+    Scraper récursivement une catégorie avec pagination.
+
+    Args:
+        url: URL de la page catégorie à scraper
+        max_pages: Nombre maximum de pages à scraper (protection)
+        _current_page: Compteur interne (ne pas modifier, utilisé en récursion)
+
+    Returns:
+        Liste de toutes les URLs de produits trouvées dans la catégorie
+
+    Logique:
+        - Vérifier si _current_page > max_pages → retourner []
+        - Fetch la page avec fetch_page(url)
+        - Si fetch échoue → retourner []
+        - Parser avec BeautifulSoup
+        - Extraire les URLs produits de cette page avec get_product_urls()
+        - Chercher l'URL de la page suivante avec get_next_page_url()
+        - Si next_url existe → appel récursif scrape_category(next_url, max_pages, _current_page + 1)
+        - Combiner les résultats (current_products + next_products)
+        - Retourner la liste complète
+    """
+    # TODO: implémenter la logique récursive
+    return []
