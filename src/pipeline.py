@@ -1,5 +1,5 @@
 from .http_client import fetch_page
-from .extract import extract_product_data
+from .extract import get_product_data
 from .transform import transform_product_data
 from .csv_writer import write_products_csv
 
@@ -11,8 +11,9 @@ def run_product_pipeline() -> None:
     Orchestration minimale :
     1) fetch_page(page_url)
     2) extract_product_data(html, page_url) -> raw
-    3) transform_product_data(raw) -> record
-    4) write_products_csv([record], out_path)
+    3) Extract catégories + pagination
+    4) transform_product_data(raw) -> record
+    5) write_products_csv([record], out_path)
 
     Gérer les erreurs de façon simple (try/except) et imprimer l'état.
     """
@@ -25,3 +26,4 @@ def run_product_pipeline() -> None:
         return
 
     print(f"Fetched {len(page_data)} chars")
+    print(get_product_data(page_data, TEST_URL))
