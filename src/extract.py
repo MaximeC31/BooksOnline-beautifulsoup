@@ -2,10 +2,6 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 
-def get_product_page_url(soup: BeautifulSoup, page_url: str) -> str:
-    return page_url
-
-
 def get_universal_product_code(soup: BeautifulSoup) -> str:
     td = soup.select_one("table.table.table-striped tr:nth-child(1) > td")
     return td.get_text() if td else "N/A"
@@ -49,15 +45,15 @@ def get_review_rating(soup: BeautifulSoup) -> str:
 
 def get_image_url(soup: BeautifulSoup, page_url: str) -> str:
     img = soup.select_one(".item.active img")
-    ##Appliquer un transform ici
+    ##Applique un transform ici
     return urljoin(page_url, str(img.get("src"))) if img else "N/A"
 
 
-def get_product_raw(html: str, page_url: str) -> dict[str, str]:
+def extract_product_data(html: str, page_url: str) -> dict[str, str]:
     soup = BeautifulSoup(html, "html.parser")
 
     return {
-        "product_page_url": get_product_page_url(soup, page_url),
+        "product_page_url": page_url,
         "universal_product_code": get_universal_product_code(soup),
         "title": get_title(soup),
         "price_including_tax": get_price_including_tax(soup),
@@ -73,12 +69,12 @@ def get_product_raw(html: str, page_url: str) -> dict[str, str]:
 def get_product_urls(html: str, page_url: str) -> list[str]:
     soup = BeautifulSoup(html, "html.parser")
 
-    product_urls = soup.select("h3 > a")
-    ##Appliquer un transform ici
+    product_links = soup.select("h3 > a")
+    ##Applique un transform ici
     return [
-        urljoin(page_url, str(product.get("href")))
-        for product in product_urls
-        if product_urls
+        urljoin(page_url, str(link.get("href")))
+        for link in product_links
+        if product_links
     ]
 
 
@@ -86,6 +82,7 @@ def get_next_page_url(html: str, category_url: str) -> str | None:
     soup = BeautifulSoup(html, "html.parser")
 
     next_link = soup.select_one(".next a")
+    ##Applique un transform ici
     return urljoin(category_url, str(next_link.get("href"))) if next_link else None
 
 
@@ -93,7 +90,7 @@ def get_categories_urls(html: str, base_url: str) -> list[str]:
     soup = BeautifulSoup(html, "html.parser")
 
     category_links = soup.select(".side_categories ul.nav-list ul li a")
-    ##Appliquer un transform ici
+    ##Applique  un transform ici
     return [
         urljoin(base_url, str(link.get("href")))
         for link in category_links

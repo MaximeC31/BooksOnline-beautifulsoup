@@ -1,6 +1,6 @@
 from .http_client import fetch_page
 from .extract import (
-    get_product_raw,
+    extract_product_data,
     get_product_urls,
     get_next_page_url,
     get_categories_urls,
@@ -9,6 +9,7 @@ from .transform import transform_product_data
 from .csv_writer import write_products_csv
 
 MAIN_URL = "https://books.toscrape.com"
+DEFAULT_MAX_PAGES = 2
 
 
 def scrape_homepage_categories(main_page_url: str) -> list[str]:
@@ -19,8 +20,8 @@ def scrape_homepage_categories(main_page_url: str) -> list[str]:
     return get_categories_urls(html, main_page_url)
 
 
-def scrape_category_pages(category_url: str, max_pages: int = 2) -> list[str]:
-    print("Scraping category with pagination...")
+def scrape_category(category_url: str, max_pages: int = DEFAULT_MAX_PAGES) -> list[str]:
+    print("[INFO] Scraping category with pagination...")
 
     all_product_urls: list[str] = []
     current_url = category_url
@@ -29,19 +30,20 @@ def scrape_category_pages(category_url: str, max_pages: int = 2) -> list[str]:
     while True:
         page_count += 1
         if page_count > max_pages:
-            print(f"Max pages ({max_pages}) reached")
+            print(f"[INFO] Max pages ({max_pages}) reached")
             break
         html = fetch_page(current_url)
         if not html:
+            print(f"[WARNING] Failed to fetch page {page_count}")
             break
 
         product_urls = get_product_urls(html, current_url)
         all_product_urls.extend(product_urls)
-        print(f"Page {page_count}: {len(product_urls)} products found")
+        print(f"[INFO] Page {page_count}: {len(product_urls)} products found")
 
         next_url = get_next_page_url(html, current_url)
         if not next_url:
-            print("No more pages")
+            print("[INFO] No more pages")
             break
 
         current_url = next_url
@@ -50,38 +52,39 @@ def scrape_category_pages(category_url: str, max_pages: int = 2) -> list[str]:
 
 
 def scrape_products_data(product_urls: list[str]) -> list[dict[str, str]]:
-    print(f"\nScraping {len(product_urls)} products...")
+    print(f"[INFO] Scraping {len(product_urls)} products...")
 
-    books_raw: list[dict[str, str]] = []
-    for book_url in product_urls:
-        html = fetch_page(book_url)
+    products_raw: list[dict[str, str]] = []
+    for product_url in product_urls:
+        html = fetch_page(product_url)
         if not html:
+            print(f"[WARNING] Failed to fetch product: {product_url}")
             continue
 
-        book_raw = get_product_raw(html, book_url)
-        books_raw.append(book_raw)
-        print(f"Raw product added: {book_raw.get('title')}")
+        product_raw = extract_product_data(html, product_url)
+        products_raw.append(product_raw)
+        print(f"[INFO] Raw product added: {product_raw.get('title')}")
 
-    return books_raw
+    return products_raw
 
 
 def run_pipeline() -> None:
     try:
         all_categories_urls = scrape_homepage_categories(MAIN_URL)
     except ValueError as e:
-        print(f"Error: {e}")
+        print(f"[ERROR] {e}")
         return
 
     for category_url in all_categories_urls:
-        print(f"\nProcessing category: {category_url}")
+        print(f"\n[INFO] Processing category: {category_url}")
 
-        all_product_urls = scrape_category_pages(category_url, max_pages=2)
-        if len(all_product_urls) == 0:
-            print("No products found")
-            return
+        all_product_urls = scrape_category(category_url, max_pages=DEFAULT_MAX_PAGES)
+        if not all_product_urls:
+            print("[WARNING] No products found, skipping category...")
+            continue
 
-        books_raw = scrape_products_data(all_product_urls)
-        books_transformed = transform_product_data(books_raw)
+        products_raw = scrape_products_data(all_product_urls)
+        products_transformed = transform_product_data(products_raw)
 
-        print(f"\nDone: {len(books_transformed)} products scraped")
-        print(books_transformed[len(books_transformed) - 1])
+        print(f"[INFO] Done: {len(products_transformed)} products scraped")
+        print(products_transformed[-1])
