@@ -87,3 +87,15 @@ def get_next_page_url(html: str, category_url: str) -> str | None:
 
     next_link = soup.select_one(".next a")
     return urljoin(category_url, str(next_link.get("href"))) if next_link else None
+
+
+def get_categories_urls(html: str, base_url: str) -> list[str]:
+    soup = BeautifulSoup(html, "html.parser")
+
+    category_links = soup.select(".side_categories ul.nav-list ul li a")
+    ##Appliquer un transform ici
+    return [
+        urljoin(base_url, str(link.get("href")))
+        for link in category_links
+        if link.get("href")
+    ]

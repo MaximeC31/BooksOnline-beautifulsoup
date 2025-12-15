@@ -1,11 +1,22 @@
 from .http_client import fetch_page
-from .extract import get_product_raw, get_product_urls, get_next_page_url
+from .extract import (
+    get_product_raw,
+    get_product_urls,
+    get_next_page_url,
+    get_categories_urls,
+)
 from .transform import transform_product_data
 from .csv_writer import write_products_csv
 
-TEST_URL = (
-    "https://books.toscrape.com/catalogue/category/books/sequential-art_5/index.html"
-)
+MAIN_URL = "https://books.toscrape.com"
+
+
+def scrape_homepage_categories(main_page_url: str) -> list[str]:
+    html = fetch_page(main_page_url)
+    if not html:
+        raise ValueError("Failed to fetch main page")
+
+    return get_categories_urls(html, main_page_url)
 
 
 def scrape_category_pages(category_url: str, max_pages: int = 2) -> list[str]:
@@ -57,13 +68,22 @@ def scrape_products_data(product_urls: list[str]) -> list[dict[str, str]]:
 
 
 def run_pipeline() -> None:
-    all_product_urls = scrape_category_pages(TEST_URL, max_pages=2)
-
-    if len(all_product_urls) == 0:
-        print("No products found")
+    try:
+        all_categories_urls = scrape_homepage_categories(MAIN_URL)
+    except ValueError as e:
+        print(f"Error: {e}")
         return
 
-    books_raw = scrape_products_data(all_product_urls)
+    for category_url in all_categories_urls:
+        print(f"\nProcessing category: {category_url}")
 
-    print(f"\nDone: {len(books_raw)} products scraped")
-    print(books_raw[len(books_raw) - 1])
+        all_product_urls = scrape_category_pages(category_url, max_pages=2)
+
+        if len(all_product_urls) == 0:
+            print("No products found")
+            return
+
+        books_raw = scrape_products_data(all_product_urls)
+
+        print(f"\nDone: {len(books_raw)} products scraped")
+        print(books_raw[len(books_raw) - 1])
