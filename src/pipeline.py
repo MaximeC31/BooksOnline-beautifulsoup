@@ -28,11 +28,9 @@ def scrape_category_pages(category_url: str, max_pages: int = 2) -> list[str]:
 
     while True:
         page_count += 1
-
         if page_count > max_pages:
             print(f"Max pages ({max_pages}) reached")
             break
-
         html = fetch_page(current_url)
         if not html:
             break
@@ -53,8 +51,8 @@ def scrape_category_pages(category_url: str, max_pages: int = 2) -> list[str]:
 
 def scrape_products_data(product_urls: list[str]) -> list[dict[str, str]]:
     print(f"\nScraping {len(product_urls)} products...")
-    books_raw: list[dict[str, str]] = []
 
+    books_raw: list[dict[str, str]] = []
     for book_url in product_urls:
         html = fetch_page(book_url)
         if not html:
@@ -78,12 +76,12 @@ def run_pipeline() -> None:
         print(f"\nProcessing category: {category_url}")
 
         all_product_urls = scrape_category_pages(category_url, max_pages=2)
-
         if len(all_product_urls) == 0:
             print("No products found")
             return
 
         books_raw = scrape_products_data(all_product_urls)
+        books_transformed = transform_product_data(books_raw)
 
-        print(f"\nDone: {len(books_raw)} products scraped")
-        print(books_raw[len(books_raw) - 1])
+        print(f"\nDone: {len(books_transformed)} products scraped")
+        print(books_transformed[len(books_transformed) - 1])
