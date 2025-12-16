@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
+from .constants import ProductRaw
+
 
 def get_universal_product_code(soup: BeautifulSoup) -> str:
     td = soup.select_one("table.table.table-striped tr:nth-child(1) > td")
@@ -49,7 +51,7 @@ def get_image_url(soup: BeautifulSoup, page_url: str) -> str:
     return urljoin(page_url, str(img.get("src"))) if img else "N/A"
 
 
-def extract_product_data(html: str, page_url: str) -> dict[str, str]:
+def extract_product_data(html: str, page_url: str) -> ProductRaw:
     soup = BeautifulSoup(html, "html.parser")
 
     return {
@@ -74,7 +76,7 @@ def get_product_urls(html: str, page_url: str) -> list[str]:
     return [
         urljoin(page_url, str(link.get("href")))
         for link in product_links
-        if product_links
+        if link.get("href")
     ]
 
 

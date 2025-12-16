@@ -1,7 +1,11 @@
+from .constants import ProductRaw, ProductTransformed
+
+
 def transform_price(price_str: str) -> float:
     cleaned_price = "".join(c for c in price_str if c.isdigit() or c == ".")
     if not cleaned_price:
-        raise ValueError(f"Invalid price format: {price_str}")
+        print(f"[WARNING] Invalid price format: '{price_str}', using 0.0")
+        return 0.0
     return float(cleaned_price)
 
 
@@ -31,8 +35,8 @@ def transform_rating(rating_str: str) -> int | str:
 
 
 def transform_product_data(
-    books_raw: list[dict[str, str]],
-) -> list[dict[str, str | float | int]]:
+    books_raw: list[ProductRaw],
+) -> list[ProductTransformed]:
     return [
         {
             "product_page_url": product["product_page_url"],

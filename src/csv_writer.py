@@ -1,27 +1,23 @@
 import csv
 from pathlib import Path
-from typing import List, Dict, Any
+from .constants import PRODUCT_FIELDS, ProductTransformed
+
+OUTPUT_DATA_DIR = Path("output/data")
 
 
-CSV_COLUMNS = [
-    "product_page_url",
-    "universal_product_code",
-    "title",
-    "price_including_tax",
-    "price_excluding_tax",
-    "number_available",
-    "product_description",
-    "category",
-    "review_rating",
-    "image_url",
-]
+def write_products_category(products: list[ProductTransformed]) -> None:
+    try:
+        category_raw = str(products[0]["category"])
+        category_name = "_".join(category_raw.lower().split())
+        OUTPUT_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        out_path = OUTPUT_DATA_DIR / f"{category_name}.csv"
 
+        with out_path.open("w", encoding="utf-8", newline="") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=PRODUCT_FIELDS)
+            writer.writeheader()
+            writer.writerows(products)
 
-def write_products_csv(products: List[Dict[str, Any]], out_path: str = "products.csv") -> None:
-    """
-    Écrire la liste de produits dans out_path (UTF-8, délimiteur virgule).
-    - products: liste de dicts contenant les mêmes clés que CSV_COLUMNS
-    - Imprimer: print("[LOAD] Écriture CSV ->", out_path)
-    """
-    # TODO: implémenter l'écriture CSV
-    raise NotImplementedError
+        print(f"[LOAD] Writing {category_name}.csv - {len(products)} products")
+    except Exception as e:
+        print(f"[ERROR] Cannot write CSV: {e}")
+        return

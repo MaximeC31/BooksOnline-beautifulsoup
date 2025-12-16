@@ -1,8 +1,8 @@
-from src.pipeline import run_pipeline
+from src.scraper import scrape_all_categories
 
 
 def main() -> None:
-    run_pipeline()
+    scrape_all_categories()
 
 
 if __name__ == "__main__":

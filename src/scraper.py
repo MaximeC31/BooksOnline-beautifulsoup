@@ -6,10 +6,8 @@ from .extract import (
     get_categories_urls,
 )
 from .transform import transform_product_data
-from .csv_writer import write_products_csv
-
-MAIN_URL = "https://books.toscrape.com"
-DEFAULT_MAX_PAGES = 2
+from .csv_writer import write_products_category
+from .constants import MAIN_URL, DEFAULT_MAX_PAGES, ProductRaw
 
 
 def scrape_homepage_categories(main_page_url: str) -> list[str]:
@@ -51,10 +49,10 @@ def scrape_category(category_url: str, max_pages: int = DEFAULT_MAX_PAGES) -> li
     return all_product_urls
 
 
-def scrape_products_data(product_urls: list[str]) -> list[dict[str, str]]:
+def scrape_products_data(product_urls: list[str]) -> list[ProductRaw]:
     print(f"[INFO] Scraping {len(product_urls)} products...")
 
-    products_raw: list[dict[str, str]] = []
+    products_raw: list[ProductRaw] = []
     for product_url in product_urls:
         html = fetch_page(product_url)
         if not html:
@@ -68,7 +66,7 @@ def scrape_products_data(product_urls: list[str]) -> list[dict[str, str]]:
     return products_raw
 
 
-def run_pipeline() -> None:
+def scrape_all_categories() -> None:
     try:
         all_categories_urls = scrape_homepage_categories(MAIN_URL)
     except ValueError as e:
@@ -86,5 +84,12 @@ def run_pipeline() -> None:
         products_raw = scrape_products_data(all_product_urls)
         products_transformed = transform_product_data(products_raw)
 
-        print(f"[INFO] Done: {len(products_transformed)} products scraped")
-        print(products_transformed[-1])
+        if not products_transformed:
+            print("[WARNING] No transformed products, skipping CSV write")
+            continue
+
+        write_products_category(products_transformed)
+
+        print(
+            f"[INFO] Category {products_transformed[0]['category']}: {len(products_transformed)} products"
+        )
