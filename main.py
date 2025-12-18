@@ -1,9 +1,6 @@
-from src.scraper import scrape_all_categories
-
-
-def main() -> None:
-    scrape_all_categories()
+from src.scraper import scrape_site
 
 
 if __name__ == "__main__":
-    main()
+    MAIN_URL: str = "https://books.toscrape.com"
+    scrape_site(MAIN_URL)
