@@ -1,7 +1,7 @@
 import csv
 from pathlib import Path
 from typing import Any
-from .constants import FIELDNAMES
+from ..constants import FIELDNAMES
 
 OUTPUT_DATA_DIR = Path("output/data")
 

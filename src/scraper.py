@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import Any
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from .http_client import fetch
-from .csv_writer import create_csv, append_row
+from .http_client import fetch, fetch_image
+from .loaders import create_csv, append_row, save_image
 from .transform import transform_book
 from .constants import *
 
@@ -73,4 +73,9 @@ def scrape_book(book_url: str, category_name: str, csv_path: Path) -> None:
     book_data = transform_book(raw, book_url, category_name)
 
     append_row(csv_path, book_data)
+
+    image_bytes = fetch_image(book_data[IMAGE_URL])
+    if image_bytes:
+        save_image(image_bytes, book_data[TITLE])
+
     print(f"[INFO] {book_data[TITLE]}")

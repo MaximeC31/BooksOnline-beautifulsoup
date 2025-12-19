@@ -9,3 +9,13 @@ def fetch(url: str) -> str | None:
     except requests.RequestException as e:
         print(f"[ERROR] Failed to fetch {url}: {e}")
         return None
+
+
+def fetch_image(url: str) -> bytes | None:
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.content
+    except requests.RequestException as e:
+        print(f"[ERROR] Failed to fetch image {url}: {e}")
+        return None
