@@ -26,5 +26,6 @@ def append_row(file_path: Path, book_data: dict[str, Any]) -> None:
         with file_path.open("a", encoding="utf-8", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=FIELDNAMES)
             writer.writerow(book_data)
+            print(f"[INFO] Appended data for {book_data.get('title')}")
     except Exception as e:
         print(f"[ERROR] Cannot write to CSV: {e}")

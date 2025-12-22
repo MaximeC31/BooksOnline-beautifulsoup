@@ -78,4 +78,4 @@ def scrape_book(book_url: str, category_name: str, csv_path: Path) -> None:
     if image_bytes:
         save_image(image_bytes, book_data[TITLE])
 
-    print(f"[INFO] {book_data[TITLE]}")
+    print(f"[INFO] {book_data[TITLE]} done.")
